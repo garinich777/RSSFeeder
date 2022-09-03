@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using RSSFeeder.Models;
 using System.Diagnostics;
+using System.ServiceModel.Syndication;
+using System.Xml;
 
 namespace RSSFeeder.Controllers
 {
@@ -13,8 +15,27 @@ namespace RSSFeeder.Controllers
             _logger = logger;
         }
 
-        public IActionResult Index()
+        public IActionResult Index(int index = 1, string command = "")
         {
+            switch (command)
+            {
+                case "Next":
+                    return Redirect($"~/Home/?index={++index}");                
+                case "Past":
+                    if(index > 1)                    
+                        return Redirect($"~/Home/?index={--index}"); 
+                    else
+                        return Redirect($"~/Home/?index={index}");
+                case "First":
+                    return Redirect($"~/Home/?index={1}");
+                case "Last":
+                    return Redirect($"~/Home/?index={10}");
+                default:
+                    break;
+            }
+            XmlReader reader = XmlReader.Create(@"https://habr.com/rss/interesting/");
+            SyndicationFeed rss = SyndicationFeed.Load(reader);
+
             return View();
         }
 
