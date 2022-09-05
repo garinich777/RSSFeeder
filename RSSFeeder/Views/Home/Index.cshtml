@@ -1,89 +1,94 @@
-﻿@{
+﻿@using System.ServiceModel.Syndication
+@{
     ViewData["Title"] = Context.Request.QueryString;
     string queryString = Context.Request.QueryString.Value;
     if (queryString == string.Empty)
         queryString = "?index=1";
 }
 
-<div class="text-center">
-    <div class="card d-flex" style="width: 48rem">
-        <div class="card-body">
-            <!--Table-->
-            <table class="table-responsive">
-            </table>
-            <table class="table table-hover table-forum text-center">
-                <!--Table head-->
-                <thead>
-                    <tr>
-                        <th class="text-left">Topic</th>
-                        <th>Date</th>
-                    </tr>
-                </thead>
-                <!--Table head-->
-                <!--Table body-->
-                <tbody>
-                    <tr>
-                        <td class="text-start">
-                            <a href="#" class="font-weight-bold blue-text">
-                                Styling in the Shadow DOM With CSS Shadow Parts
-                            </a>
-                        </td>
-                        <td>
-                            <a href="#" class="text-dark">
-                                11.09.2001
-                            </a>
-                        </td>
-                    </tr>
-                </tbody>
-                <!--Table body-->
-            </table>
 
-            <!-- Table -->
-            <!--Bottom Table UI-->
-            <div class="d-flex justify-content-center">
-                <!--Pagination -->
-                <nav class="my-2 pt-2">
-                    <ul class="pagination pagination-circle pg-info mb-0">
-                        <!--First-->
-                        <li class="page-item clearfix d-none d-md-block">
-                            <a href="/Home/?command=First" class="page-link waves-effect">
-                                First
-                            </a>
-                        </li>
-                        <!--Arrow left-->
-                        <li class="page-item">
-                            <a href="/Home/@queryString&command=Past" class="page-link waves-effect" aria-label="Previous">
-                                <span aria-hidden="true">«</span>
-                                <span class="sr-only">
-                                    Previous
-                                </span>
-                            </a>
-                        </li>
-                        <!--Numbers-->
-                        <li class="page-item">
-                            <a href="/Home/?index=1" class="page-link waves-effect">1</a>
-                        </li>
-                        <li class="page-item active">
-                            <a href="/Home/?index=2" class="page-link waves-effect">2</a>
-                        </li>
-                        <!--Arrow right-->
-                        <li class="page-item">                            
-                            <a href="/Home/@queryString&command=Next" class="page-link waves-effect" aria-label="Next">
-                                <span aria-hidden="true">»</span>
-                                <span class="sr-only">Next</span>
-                            </a>
-                        </li>
-                        <!--Last-->
-                        <li class="page-item clearfix d-none d-md-block">
-                            <a href="/Home/?command=Last" class="page-link waves-effect">
-                                Last
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
-                <!--/Pagination -->
-            </div>
-            <!--Bottom Table UI-->
-        </div>
+<div class="card d-flex" style="width: 48rem">
+    <div class="card-body">
+        <table class="table table-hover table-forum text-center">
+            <thead>
+                <tr>
+                    <th class="text-left">Topic</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    foreach (var item in (IEnumerable<SyndicationItem>)ViewData["Itam"])
+                    {
+                            <tr class="content">
+                                <td class="text-start">
+                                    <a href="@item.Links[0].Uri" class="font-weight-bold blue-text">
+                                        @item.Title.Text
+                                    </a>
+                                    <div class="summary-content">
+                                        @if (item.Summary != null){
+                                            @Html.Raw(@item.Summary.Text)
+                                }
+                                        
+                                    </div>
+                                </td>
+                                <td>
+                                    <a class="text-dark">
+                                        @item.PublishDate.DateTime.AddHours(3).ToString()
+                                    </a>
+                                </td>
+                            </tr>
+                    }
+                }
+            </tbody>
+        </table>
+
+    </div>
+</div>
+
+<input id="toggle" type="checkbox"></input>
+
+<label for="toggle" class="hamburger">
+    <div class="top-bun"></div>
+    <div class="meat"></div>
+    <div class="bottom-bun"></div>
+</label>
+
+<div class="nav">
+    <div class="nav-wrapper">
+    @using(Html.BeginForm("AddRss", "Home", FormMethod.Post))
+    {
+        <table>
+            <tr>
+                <td><p>Введите адресс RSS</p></td>
+                <td><input type="url" name="RSSurl" /> </td>
+            </tr>
+            <tr>
+                <td><p>Введите адрес :</p></td>
+                <td><input type="text" name="Address" /> </td>
+            </tr>
+            <tr>
+                <td><input type="submit" value="Добавить" /> </td>
+                <td></td>
+            </tr>            
+        </table>
+            <table class="table table-hover table-forum text-center">
+                @{
+                    if (ListConverter.GetList(Context.Session.GetString("RSSuri")) != null)
+                    {
+                        int index = 0;
+                        foreach (var item in ListConverter.GetList(Context.Session.GetString("RSSuri")))
+                        {
+                                <tr class="content">                                    
+                                    <td class="text-start">@item.AbsoluteUri</td>
+                                <td>
+                                    @Html.Raw($"<a class=\"text-dark\" href=\"/Home/RemoveRss/?RSSintdex={index++}\">X</a>")
+                                </td>
+                                </tr>
+                        }
+                    }
+                }
+        </table>
+    }
     </div>
 </div>
